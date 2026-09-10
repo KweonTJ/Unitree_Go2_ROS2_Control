@@ -1,0 +1,9 @@
+build/
+build_*/
+install/
+install_*/
+log/
+.pytest_cache/
+__pycache__/
+*.egg-info/
+.vscode/
