@@ -1,51 +1,77 @@
-# Go2 텔레옵 개발·로봇 복사용 워크스페이스
+# Unitree Go2 Ros2 Control Workspace
+---
+- Unitree Go2를 ROS2 환경에서 제어하기 위해 구현한 ROS2 기반 제어 브리지 패키지
+- ROS2의 표준 이동 명령인 `geometry_msgs/Twist`를 입력받아 Unitree Go2의 Sport API 제어 명령으로 변환하여 `teleop_twist_keyboard`와 같은 일반적인 ROS2 입력 장치를 Go2의 실제 주행 제어와 연결
+- ROS2 제어 인터페이스와 Unitree Go2 Control API 사이를 연결하는 ROS2 Control Bridge 제공
 
-2026-09-10: 사용자의 정정에 따라 이 workspace에 코드를 복원했다. **PC의 소스는 여기에 보관하고, 로봇에는 패키지 폴더를 복사한다. 이동하지 않는다.** 기존 PC `unitree_ros2/cyclonedds_ws/src`의 복사본도 유지한다. 두 위치는 독립된 파일이므로 변경 사항은 자동 동기화되지 않는다.
+### 로봇 내부 환경
+- Ubuntu 20.04
+- ROS2 Foxy
+- 공식 unitree_ros2 패키지
+- 패키지 위치는 공식 Unitree의 같은 `cyclonedds_ws/src`에 배치한다. 별도 텔레옵 workspace는 필요하지 않다.
 
-```text
+## 패키지 구성
+---
+```
 unitree_go2_teleop_ws/
 ├── src/
 │   ├── unitree_go2_teleop/     # 속도 변환·입력 watchdog
 │   └── teleop_twist_keyboard/ # 표준 키보드 2.3.2
 ├── docs/
-└── install/                  # 이 PC에서 빌드한 결과
+└── README
 ```
+## Network Interface
+---
+``` 
+~/unitree_ros2/setup.sh
 
-## PC에서 빌드
+#!/bin/bash
 
-현재 PC는 Humble이다. 공식 Unitree 메시지 환경을 먼저 불러온 뒤 이 workspace를 빌드한다.
+echo "Setup unitree ros2 environment"
 
-```bash
-source /opt/ros/humble/setup.bash
-source ~/unitree_ros2/cyclonedds_ws/install/setup.bash
-cd ~/unitree_go2_teleop_ws
-colcon build --symlink-install --packages-select teleop_twist_keyboard unitree_go2_teleop
-source install/setup.bash
-ros2 pkg executables unitree_go2_teleop
-ros2 pkg executables teleop_twist_keyboard
-```
-
-PC의 기본 변환 노드는 `dry_run=true`로 동작한다. 주행 키와 실행 명령은 [패키지 안내](src/unitree_go2_teleop/README.md)를 참조한다.
-
-## 로봇에 복사
-
-이 workspace의 `src/unitree_go2_teleop`, `src/teleop_twist_keyboard` 두 폴더를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/` 안에 **복사**한다. PC 소스는 유지한다. PC의 `build/`, `install/`, `log/`는 로봇으로 가져가지 않는다.
-
-로봇의 기존 공식 Foxy/DDS/메시지 설치가 완료된 상태에서:
-
-```bash
 source /opt/ros/foxy/setup.bash
-source ~/unitree_ros2/cyclonedds_ws/install/setup.bash
+source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
+
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export ROS_DOMAIN_ID=0
+
+export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
+<NetworkInterface name="eth0" priority="default" multicast="default" />
+</Interfaces></General></Domain></CycloneDDS>'
+```
+- Go2 내부 네트워크 주소와 DDS 내부 주소가 불일치 문제를 인터페이스 이름 기반으로 묶어서 통신
+## 패키지 빌드
+---
+-  `unitree_ros2/cyclonedds_ws/src/`에 있는 **`unitree_go2_teleop`, `teleop_twist_keyboard` 두 폴더**를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/`에 넣고 로봇에서 빌드한다.
+
+```
 cd ~/unitree_ros2/cyclonedds_ws
-colcon build --symlink-install --packages-select teleop_twist_keyboard unitree_go2_teleop
+source ~/unitree_ros2/setup.sh
+
+colcon build --symlink-install \
+  --packages-select teleop_twist_keyboard unitree_go2_teleop
+
 source install/setup.bash
 ```
+## 로봇 주행
+---
+### 터미널 1 : 명령 변환 노드
 
-로봇에서는 이 `cyclonedds_ws` 하나로 키보드와 변환 노드를 실행한다. PC 개발 workspace와 로봇 실행 workspace의 위치가 다른 것은 의도한 구조다.
+```
+ros2 run unitree_go2_teleop cmd_vel_to_sport \
+  --ros-args \
+  -p dry_run:=false \
+  -p max_linear:=0.3
+```
+- 이동 속도 : max_linear를 키워서 실행시킨다.
+### 터미널 2 : 키보드 텔레옵
 
-## 기록
-
-- [최초 구현 기록](docs/1-basic-driving-and-turning.md)
-- [복사 방식 복구 기록](docs/3-restore-copy-workspace.md)
-
-패키지 내부의 기존 통합 기록은 당시 작업 이력이다. 현재 개발·배포 방식은 이 문서의 **PC 소스 보존 → 로봇 src로 복사**를 따른다.
+```
+ros2 run teleop_twist_keyboard teleop_twist_keyboard \
+  --ros-args \
+  -r cmd_vel:=/go2_teleop/cmd_vel
+```
+- vy 부분 제어는 구현되어 있지 않아, 옆으로 걷는 주행 불가 (기본 주행 및 회전과는 무관)
+### 주행 결과
+- 전진, 후진 시에 사용자가 의도한 곳으로 정확하게 이동하고, 몸체의 쏠림 문제 없음
+- 회전시에 몸체가 먼저 회전하고 그 이후 다리가 회전하지만, 주행 테스트에서는 문제 없음
