@@ -1,5 +1,5 @@
 # Unitree Go2 Ros2 Control Workspace
----
+
 - Unitree Go2를 ROS2 환경에서 제어하기 위해 구현한 ROS2 기반 제어 브리지 패키지
 - ROS2의 표준 이동 명령인 `geometry_msgs/Twist`를 입력받아 Unitree Go2의 Sport API 제어 명령으로 변환하여 `teleop_twist_keyboard`와 같은 일반적인 ROS2 입력 장치를 Go2의 실제 주행 제어와 연결
 - ROS2 제어 인터페이스와 Unitree Go2 Control API 사이를 연결하는 ROS2 Control Bridge 제공
@@ -11,7 +11,7 @@
 - 패키지 위치는 공식 Unitree의 같은 `cyclonedds_ws/src`에 배치한다. 별도 텔레옵 workspace는 필요하지 않다.
 
 ## 패키지 구성
----
+
 ```
 unitree_go2_teleop_ws/
 ├── src/
@@ -21,7 +21,7 @@ unitree_go2_teleop_ws/
 └── README
 ```
 ## Network Interface
----
+
 ``` 
 ~/unitree_ros2/setup.sh
 
@@ -41,7 +41,7 @@ export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
 ```
 - Go2 내부 네트워크 주소와 DDS 내부 주소가 불일치 문제를 인터페이스 이름 기반으로 묶어서 통신
 ## 패키지 빌드
----
+
 -  `unitree_ros2/cyclonedds_ws/src/`에 있는 **`unitree_go2_teleop`, `teleop_twist_keyboard` 두 폴더**를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/`에 넣고 로봇에서 빌드한다.
 
 ```
@@ -54,7 +54,7 @@ colcon build --symlink-install \
 source install/setup.bash
 ```
 ## 로봇 주행
----
+
 ### 터미널 1 : 명령 변환 노드
 
 ```
