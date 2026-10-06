@@ -29,6 +29,17 @@ unitree_go2_teleop_ws/
 
 echo "Setup unitree ros2 environment"
 
+<<<<<<< HEAD
+=======
+PC의 기본 변환 노드는 `dry_run=true`로 동작한다. 주행 키와 실행 명령은 [패키지 안내](src/unitree_go2_teleop/README.md)를 참조한다.
+
+## 로봇에 복사
+
+이 workspace의 `src/unitree_go2_teleop`, `src/teleop_twist_keyboard` 두 폴더를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/` 안에 **복사**한다. 
+
+
+```bash
+>>>>>>> db19e1a (3.0)
 source /opt/ros/foxy/setup.bash
 source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
 
