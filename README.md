@@ -20,37 +20,7 @@ unitree_go2_teleop_ws/
 ├── docs/
 └── README
 ```
-## Network Interface
 
-``` 
-~/unitree_ros2/setup.sh
-
-#!/bin/bash
-
-echo "Setup unitree ros2 environment"
-
-<<<<<<< HEAD
-=======
-PC의 기본 변환 노드는 `dry_run=true`로 동작한다. 주행 키와 실행 명령은 [패키지 안내](src/unitree_go2_teleop/README.md)를 참조한다.
-
-## 로봇에 복사
-
-이 workspace의 `src/unitree_go2_teleop`, `src/teleop_twist_keyboard` 두 폴더를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/` 안에 **복사**한다. 
-
-
-```bash
->>>>>>> db19e1a (3.0)
-source /opt/ros/foxy/setup.bash
-source $HOME/unitree_ros2/cyclonedds_ws/install/setup.bash
-
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-export ROS_DOMAIN_ID=0
-
-export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces>
-<NetworkInterface name="eth0" priority="default" multicast="default" />
-</Interfaces></General></Domain></CycloneDDS>'
-```
-- Go2 내부 네트워크 주소와 DDS 내부 주소가 불일치 문제를 인터페이스 이름 기반으로 묶어서 통신
 ## 패키지 빌드
 
 -  `unitree_ros2/cyclonedds_ws/src/`에 있는 **`unitree_go2_teleop`, `teleop_twist_keyboard` 두 폴더**를 로봇의 `~/unitree_ros2/cyclonedds_ws/src/`에 넣고 로봇에서 빌드한다.
