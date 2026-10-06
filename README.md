@@ -39,18 +39,13 @@ source install/setup.bash
 ### 터미널 1 : 명령 변환 노드
 
 ```
-ros2 run unitree_go2_teleop cmd_vel_to_sport \
-  --ros-args \
-  -p dry_run:=false \
-  -p max_linear:=0.3
+ros2 run unitree_go2_teleop cmd_vel_to_sport
 ```
 - 이동 속도 : max_linear를 키워서 실행시킨다.
 ### 터미널 2 : 키보드 텔레옵
 
 ```
-ros2 run teleop_twist_keyboard teleop_twist_keyboard \
-  --ros-args \
-  -r cmd_vel:=/go2_teleop/cmd_vel
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 - vy 부분 제어는 구현되어 있지 않아, 옆으로 걷는 주행 불가 (기본 주행 및 회전과는 무관)
 ### 주행 결과
