@@ -47,7 +47,7 @@ ros2 run unitree_go2_teleop cmd_vel_to_sport
 ```
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
-- vy 부분 제어는 구현되어 있지 않아, 옆으로 걷는 주행 불가 (기본 주행 및 회전과는 무관)
+
 ### 주행 결과
 - 전진, 후진 시에 사용자가 의도한 곳으로 정확하게 이동하고, 몸체의 쏠림 문제 없음
 - 회전시에 몸체가 먼저 회전하고 그 이후 다리가 회전하지만, 주행 테스트에서는 문제 없음
