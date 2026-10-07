@@ -7,6 +7,10 @@
   <maintainer email="kweontj0701@naver.com">a</maintainer>
   <license>TODO: License declaration</license>
 
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>unitree_go2_teleop</exec_depend>
+
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
 
