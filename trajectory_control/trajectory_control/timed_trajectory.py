@@ -45,24 +45,12 @@ class TimedTrajectory(Node):
         self.yaw = float(self.get_parameter('yaw').value)
         self.duration = float(self.get_parameter('duration').value)
         self.publish_rate = float(self.get_parameter('publish_rate').value)
-        self.lowstate_topic = self.get_parameter(
-            'lowstate_topic'
-        ).value
-        self.heading_control = bool(
-            self.get_parameter(
-                'heading_control'
-            ).value
-        )
-
+        self.lowstate_topic = self.get_parameter('lowstate_topic').value
+        self.heading_control = bool(self.get_parameter('heading_control').value)
         self.kp_yaw = float(self.get_parameter('kp_yaw').value)
         self.ki_yaw = float(self.get_parameter('ki_yaw').value)
         self.kd_yaw = float(self.get_parameter('kd_yaw').value)
-
-        self.max_yaw_correction = float(
-            self.get_parameter(
-                'max_yaw_correction'
-            ).value
-        )
+        self.max_yaw_correction = float(self.get_parameter('max_yaw_correction').value)
 
         # -----------------------------
         # Publisher
@@ -88,12 +76,9 @@ class TimedTrajectory(Node):
             self.start_time = time.monotonic()
 
         self.finished = False
-
         self.current_yaw = None
         self.yaw_rate = 0.0
-
         self.target_yaw = None
-
         self.yaw_integral = 0.0
         self.last_control_time = None
 
