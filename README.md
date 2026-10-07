@@ -134,9 +134,34 @@ source install/setup.bash
 ```
 
 
-## 로봇 주행
+## 로봇 제어
 
-### 키보드 텔레옵 실행
+### Control structure
+
+```
+                   ROS2 Control Input
+                          │
+            ┌─────────────┴─────────────┐
+            │                           │
+            ▼                           ▼
+teleop_twist_keyboard            trajectory_control
+            │                           │
+            └─────────────┬─────────────┘
+                          │
+                      /cmd_vel
+                          │
+                          ▼
+                  unitree_go2_teleop
+                  cmd_vel_to_sport
+                          │
+                          ▼
+                 /api/sport/request
+                          │
+                          ▼
+                    Unitree Go2
+```
+
+### Keyboard teleop Control
 
 ```bash
 ros2 launch unitree_go2_teleop keyboard_teleop.launch.py
@@ -144,7 +169,7 @@ ros2 launch unitree_go2_teleop keyboard_teleop.launch.py
 - 이동 속도 : max_linear를 키워서 실행시킨다.
 
 
-### 시간 기반 Trajectory 주행
+### Trajectory Control
 
 ```bash
 ros2 launch trajectory_control timed_trajectory.launch.py \
