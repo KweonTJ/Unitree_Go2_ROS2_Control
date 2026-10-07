@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 setup(
@@ -7,6 +9,7 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/unitree_go2_teleop']),
         ('share/unitree_go2_teleop', ['package.xml']),
+        (os.path.join('share', 'unitree_go2_teleop', 'launch'), glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

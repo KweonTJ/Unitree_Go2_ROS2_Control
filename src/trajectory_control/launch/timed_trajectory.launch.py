@@ -6,11 +6,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    vx = LaunchConfiguration('vx')
-    vy = LaunchConfiguration('vy')
-    yaw = LaunchConfiguration('yaw')
-    duration = LaunchConfiguration('duration')
-    publish_rate = LaunchConfiguration('publish_rate')
+    vx = LaunchConfiguration('vx')          # 전후진 선속도
+    vy = LaunchConfiguration('vy')        # 좌우 횡방향 속도
+    yaw = LaunchConfiguration('yaw')        # 회전 속도
+    duration = LaunchConfiguration('duration')  # 주행 시간
+    publish_rate = LaunchConfiguration('publish_rate')  # 명령 발행 주기
 
     bridge_node = Node(
         package='unitree_go2_teleop',
