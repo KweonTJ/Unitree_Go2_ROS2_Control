@@ -27,12 +27,12 @@ class TimedTrajectory(Node):
         self.declare_parameter('duration', 5.0)
         self.declare_parameter('publish_rate', 50.0)
 
-        self.declare_parameter('lowstate_topic', '/low_state')
+        self.declare_parameter('lowstate_topic', '/lowstate')
         self.declare_parameter('heading_control', True)
 
         self.declare_parameter('kp_yaw', 1.0)
         self.declare_parameter('ki_yaw', 0.0)
-        self.declare_parameter('kd_yaw', 0.0)
+        self.declare_parameter('kd_yaw', 0.05)
 
         self.declare_parameter('max_yaw_correction', 0.15)
 
@@ -70,6 +70,11 @@ class TimedTrajectory(Node):
 
         # 시작 시간
         # self.start_time = time.monotonic()
+        self.heading_active = (
+            self.heading_control
+            and abs(self.yaw) < 1e-6
+        )
+                
         if self.heading_active:
             self.start_time = None
         else:
@@ -81,11 +86,6 @@ class TimedTrajectory(Node):
         self.target_yaw = None
         self.yaw_integral = 0.0
         self.last_control_time = None
-
-        self.heading_active = (
-            self.heading_control
-            and abs(self.yaw) < 1e-6
-        )
 
         # -----------------------------
         # Timer
@@ -224,16 +224,12 @@ class TimedTrajectory(Node):
 
         msg.linear.x = self.vx
         msg.linear.y = self.vy
-
-        msg.angular.z = self.yaw
         if self.heading_active:
-
             msg.angular.z = (
                 self.calculate_yaw_correction()
             )
 
         else:
-
             msg.angular.z = self.yaw
 
         self.publisher.publish(msg)
