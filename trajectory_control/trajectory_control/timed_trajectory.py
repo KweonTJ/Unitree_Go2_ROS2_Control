@@ -105,13 +105,8 @@ class TimedTrajectory(Node):
 
     def lowstate_callback(self, msg):
 
-        yaw = float(
-            msg.imu_state.rpy[2]
-        )
-
-        yaw_rate = float(
-            msg.imu_state.gyroscope[2]
-        )
+        yaw = float(msg.imu_state.rpy[2])
+        yaw_rate = float(msg.imu_state.gyroscope[2])
 
         if not (
             math.isfinite(yaw)
@@ -141,56 +136,42 @@ class TimedTrajectory(Node):
 
     def calculate_yaw_correction(self):
 
-            if (
-                self.current_yaw is None
-                or self.target_yaw is None
-            ):
-                return 0.0
+        if (
+            self.current_yaw is None
+            or self.target_yaw is None
+        ):
+            return 0.0
 
-            now = time.monotonic()
+        now = time.monotonic()
 
-            error = wrap_angle(
-                self.target_yaw
-                - self.current_yaw
-            )
+        error = wrap_angle(
+            self.target_yaw
+            - self.current_yaw
+        )
 
-            dt = 0.0
+        dt = 0.0
 
-            if self.last_control_time is not None:
-                dt = now - self.last_control_time
+        if self.last_control_time is not None:
+            dt = now - self.last_control_time
 
-            self.last_control_time = now
+        self.last_control_time = now
 
-            if dt > 0.0:
+        if dt > 0.0:
+            self.yaw_integral += (error * dt)
+            # Integral windup 제한
+            self.yaw_integral = max(-0.5, min(0.5, self.yaw_integral))
 
-                self.yaw_integral += (
-                    error * dt
-                )
+        yaw_correction = (
+            self.kp_yaw * error
+            + self.ki_yaw * self.yaw_integral
+            - self.kd_yaw * self.yaw_rate
+        )
 
-                # Integral windup 제한
-                self.yaw_integral = max(
-                    -0.5,
-                    min(
-                        0.5,
-                        self.yaw_integral
-                    )
-                )
+        yaw_correction = max(
+            -self.max_yaw_correction,
+            min(self.max_yaw_correction, yaw_correction))
 
-            yaw_correction = (
-                self.kp_yaw * error
-                + self.ki_yaw * self.yaw_integral
-                - self.kd_yaw * self.yaw_rate
-            )
-
-            yaw_correction = max(
-                -self.max_yaw_correction,
-                min(
-                    self.max_yaw_correction,
-                    yaw_correction
-                )
-            )
-
-            return yaw_correction
+        return yaw_correction
 
     def timer_callback(self):
 
