@@ -22,32 +22,12 @@
 
 ```
 
-cyclonedds_ws/
-├── src/
-│ ├── unitree/
-│ ├── cyclonedds/
-│ ├── rmw_cyclonedds/
-│ │
-│ ├── unitree_go2_teleop/
-│ │ ├── launch/
-│ │ │ └── keyboard_teleop.launch.py
-│ │ │
-│ │ └── unitree_go2_teleop/
-│ │ ├── bridge.py
-│ │ └── control.py
-│ │
-│ ├── teleop_twist_keyboard/
-│ │
-│ └── trajectory_control/
-│ ├── launch/
-│ │ └── timed_trajectory.launch.py
-│ │
-│ └── trajectory_control/
-│ └── timed_trajectory.py
-│
-├── build/
-├── install/
-└── log/
+Unitree_Go2_ROS2_Control/
+├── unitree_go2_teleop/       # Twist → Unitree Sport API Bridge
+├── teleop_twist_keyboard/    # Keyboard → Twist
+├── trajectory_control/       # 시간 기반 Trajectory Control
+├── docs/
+└── README.md
 
 ```
 
