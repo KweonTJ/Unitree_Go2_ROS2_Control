@@ -25,16 +25,16 @@
 Unitree_Go2_ROS2_Control/
 ├── unitree_go2_teleop/       # Twist → Unitree Sport API Bridge
 ├── teleop_twist_keyboard/    # Keyboard → Twist
-├── trajectory_control/       # 시간 기반 Trajectory Control
+├── trajectory_control/       # 시간 기반 Trajectory Control + PID Control
 ├── docs/
 └── README.md
 
 ```
 
 ### 1. unitree_go2_teleop
-- ROS2 /cmd_vel topic을 받아 Unitree Go2의 Sport API 명령 변환 패키지
+- ROS2 /cmd_vel topic을 받아 Unitree Go2의 Sport API 명령 변환 패키지ㅁ
 #### 입력
-```text
+```text 
 geometry_msgs/Twist
 /cmd_vel
 ```
@@ -71,6 +71,14 @@ vy
 yaw
 duration
 publish_rate
+
+heading_control
+
+kp_yaw
+ki_yaw
+kd_yaw
+
+max_yaw_correction
 ```
 #### 변수
 ```text
@@ -79,6 +87,11 @@ vy           좌우 이동 속도 [m/s]
 yaw          회전 속도 [rad/s]
 duration     해당 명령 유지 시간 [s]
 publish_rate /cmd_vel 발행 주기 [Hz]
+heading_control     = true
+kp_yaw              = 1.0
+ki_yaw              = 0.0
+kd_yaw              = 0.05
+max_yaw_correction  = 0.15 rad/s
 ```
 #### 주행 구조
 ```text
@@ -119,26 +132,35 @@ source install/setup.bash
 ### Control structure
 
 ```
-                   ROS2 Control Input
-                          │
-            ┌─────────────┴─────────────┐
-            │                           │
-            ▼                           ▼
-teleop_twist_keyboard            trajectory_control
-            │                           │
-            └─────────────┬─────────────┘
-                          │
-                      /cmd_vel
-                          │
-                          ▼
-                  unitree_go2_teleop
-                  cmd_vel_to_sport
-                          │
-                          ▼
-                 /api/sport/request
-                          │
-                          ▼
-                    Unitree Go2
+                         ROS2 Control Input
+                                │
+                  ┌─────────────┴─────────────┐
+                  │                           │
+                  ▼                           ▼
+        teleop_twist_keyboard          trajectory_control
+                  │                           │
+                  │                    ┌──────┴──────┐
+                  │                    │             │
+                  │                 /lowstate     vx/vy/yaw
+                  │                    │             │
+                  │                    ▼             │
+                  │               IMU Heading PID    │
+                  │                    │             │
+                  │                    └──────┬──────┘
+                  │                           │
+                  └─────────────┬─────────────┘
+                                │
+                            /cmd_vel
+                                │
+                                ▼
+                        unitree_go2_teleop
+                        cmd_vel_to_sport
+                                │
+                                ▼
+                       /api/sport/request
+                                │
+                                ▼
+                          Unitree Go2
 ```
 
 ### Keyboard teleop Control
