@@ -173,11 +173,40 @@ ros2 launch unitree_go2_teleop keyboard_teleop.launch.py
 
 ### Trajectory Control
 
+기본 모드는 새 GNOME 터미널에서 `vx vy yaw duration`을 반복 입력하는 대화형 모드다.
+데스크톱 환경과 `gnome-terminal`이 필요하다. 각 주행과 정지 반복 전송이 끝나면 다음 입력을 받는다.
+`vx`, `vy`, `yaw`, `duration` ROS 인자로 한 번 실행하려면 `interactive:=false`를 지정한다.
+이 모드는 새 터미널을 열지 않으므로 SSH에서도 사용할 수 있다.
+
 ```bash
 ros2 launch trajectory_control timed_trajectory.launch.py \
+    interactive:=false \
     vx:=0.3 \
     duration:=5.0
 ```
+
+대화형 모드 실행:
+
+```bash
+ros2 launch trajectory_control timed_trajectory.launch.py
+# 새 터미널에서 입력: 0.3 0 0 5
+```
+
+GUI 없는 SSH에서 대화형 입력을 쓰려면 두 터미널에서 각각 실행한다.
+
+```bash
+# 터미널 A: Bridge
+ros2 run unitree_go2_teleop cmd_vel_to_sport --ros-args -p command_timeout:=0.5
+# 터미널 B: 반복 입력
+ros2 run trajectory_control timed_trajectory --ros-args -p interactive:=true
+```
+
+위 launch와 Bridge 명령은 실제 Sport 요청을 발행한다. 단일 실행은 정지 전송 후
+trajectory 노드만 종료하며, 함께 실행된 Bridge는 launch를 종료할 때까지 대기한다.
+입력 범위는 `vx/vy ±0.3 m/s`, `yaw ±0.4 rad/s`, `duration > 0`이다.
+`publish_rate`는 5–100 Hz, PID gain은 유한한 0 이상 값,
+`max_yaw_correction`은 0–0.4 rad/s를 허용한다.
+모든 수치 입력에서 NaN/Inf를 거부한다.
 
 - 이동 속도는 최소 0.3이어야 전진함
 ### 주행 결과
