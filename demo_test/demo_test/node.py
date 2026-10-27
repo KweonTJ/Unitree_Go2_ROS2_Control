@@ -34,7 +34,8 @@ class CircleNode(Node):
         self.timer = self.create_timer(
             1.0 / params['publish_rate'], self.tick, clock=self.clock)
         self.last_command = None
-        self.get_logger().info('Waiting for fresh lidar data in frame ' + self.frame)
+        self.get_logger().info(
+            'Starting circle driving; monitoring lidar in frame ' + self.frame)
 
     def on_cloud(self, msg):
         try:

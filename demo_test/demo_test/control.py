@@ -29,10 +29,13 @@ class CircleControl:
             raise ValueError('Invalid timeout, clear duration or publish rate')
         self.last_scan = None
         self.clear_since = None
+        # 주행은 라이다 첫 수신과 무관하게 시작한다.
+        self.stopped = False
 
     def invalidate(self):
         self.last_scan = None
         self.clear_since = None
+        self.stopped = True
 
     def observe(self, points, now):
         p = self.p
@@ -55,17 +58,25 @@ class CircleControl:
         previous = self.last_scan
         self.last_scan = now
         if blocked:
+            self.stopped = True
             self.clear_since = None
-        elif (self.clear_since is None or previous is None
-              or now - previous >= p['lidar_timeout']):
-            self.clear_since = now
+        elif (self.stopped or (previous is not None
+                              and now - previous >= p['lidar_timeout'])):
+            self.stopped = True
+            if (self.clear_since is None or previous is None
+                    or now - previous >= p['lidar_timeout']):
+                self.clear_since = now
 
     def command(self, now):
-        if (self.last_scan is None
-                or now - self.last_scan >= self.p['lidar_timeout']):
+        # 첫 입력 대기는 하지 않는다. 수신을 시작한 뒤의 끊김은 정지한다.
+        if (self.last_scan is not None
+                and now - self.last_scan >= self.p['lidar_timeout']):
+            self.stopped = True
             self.clear_since = None
-            return 0.0, 0.0
-        if (self.clear_since is None
-                or now - self.clear_since < self.p['clear_duration']):
-            return 0.0, 0.0
+        if self.stopped:
+            if (self.clear_since is None
+                    or now - self.clear_since < self.p['clear_duration']):
+                return 0.0, 0.0
+            self.stopped = False
+            self.clear_since = None
         return self.p['vx'], self.p['yaw']
