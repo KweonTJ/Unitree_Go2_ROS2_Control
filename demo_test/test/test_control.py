@@ -91,9 +91,42 @@ def test_front_roi(point):
     assert c.command(0.1) == (0, 0)
 
 
-@pytest.mark.parametrize('settings', [dict(vx=math.nan), dict(yaw=0), dict(vx=0.31),
+@pytest.mark.parametrize('settings', [dict(vx=math.nan), dict(yaw=0.41), dict(vx=0.51),
                                     dict(lidar_timeout=0), dict(front_angle_deg=181),
                                     dict(min_height=1), dict(clear_duration=-1)])
 def test_reject_invalid_settings(settings):
     with pytest.raises(ValueError):
         CircleControl(**settings)
+
+
+@pytest.mark.parametrize('vx,yaw', [(0.2, -0.2), (0.3, 0.0), (0.0, 0.0), (0.0, 0.4),
+                                  (0.4, 0.3), (0.5, 0.3)])
+def test_velocity_changes_while_driving(vx, yaw):
+    c = CircleControl()
+    c.set_velocity(vx, yaw)
+    assert c.command(0) == (vx, yaw)
+
+
+def test_max_speed_can_be_selected_at_startup():
+    assert CircleControl(vx=0.5).command(0) == (0.5, 0.3)
+
+
+def test_velocity_changes_do_not_release_obstacle_stop_or_reset_clear_delay():
+    c = CircleControl()
+    c.observe([(0.8, 0, 0)], 0)
+    c.set_velocity(0.2, -0.2)
+    assert c.command(0.1) == (0, 0)
+    c.observe(CLEAR, 0.2)
+    c.set_velocity(0.1, 0.4)
+    c.observe(CLEAR, 0.5)
+    assert c.command(0.6) == (0, 0)
+    assert c.command(0.71) == (0.1, 0.4)
+
+
+@pytest.mark.parametrize('vx,yaw', [(0.51, 0.2), (-0.1, 0.2), (0.2, -0.41),
+                                  (math.nan, 0.2), (0.2, math.inf)])
+def test_invalid_velocity_update_keeps_both_previous_targets(vx, yaw):
+    c = CircleControl()
+    with pytest.raises(ValueError):
+        c.set_velocity(vx, yaw)
+    assert c.command(0) == (0.3, 0.3)

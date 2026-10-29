@@ -3,11 +3,21 @@
 import math
 
 
+MAX_VX = 0.5
+
 DEFAULTS = dict(
     vx=0.3, yaw=0.3, stop_distance=1.0, front_angle_deg=60.0,
     min_height=-0.2, max_height=0.5, lidar_timeout=0.5,
     clear_duration=0.5, publish_rate=20.0,
 )
+
+
+def validate_velocity(vx, yaw):
+    """Accept forward/zero speed and either turn direction within bridge limits."""
+    if not (math.isfinite(vx) and math.isfinite(yaw)):
+        raise ValueError('vx and yaw must be finite')
+    if not (0 <= vx <= MAX_VX and abs(yaw) <= 0.4):
+        raise ValueError(f'Require 0 <= vx <= {MAX_VX} m/s and -0.4 <= yaw <= 0.4 rad/s')
 
 
 class CircleControl:
@@ -18,8 +28,7 @@ class CircleControl:
         p = self.p
         if not all(math.isfinite(v) for v in p.values()):
             raise ValueError('All numeric parameters must be finite')
-        if not (0 < p['vx'] <= 0.3 and 0 < abs(p['yaw']) <= 0.4):
-            raise ValueError('Require 0 < vx <= 0.3 and 0 < abs(yaw) <= 0.4')
+        validate_velocity(p['vx'], p['yaw'])
         if not (p['stop_distance'] > 0 and 0 < p['front_angle_deg'] <= 180):
             raise ValueError('Invalid distance or front angle')
         if not (p['min_height'] < p['max_height']):
@@ -31,6 +40,11 @@ class CircleControl:
         self.clear_since = None
         # 주행은 라이다 첫 수신과 무관하게 시작한다.
         self.stopped = False
+
+    def set_velocity(self, vx, yaw):
+        """Update the target without changing lidar stop/resume state."""
+        validate_velocity(vx, yaw)
+        self.p.update(vx=vx, yaw=yaw)
 
     def invalidate(self):
         self.last_scan = None

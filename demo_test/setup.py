@@ -10,7 +10,7 @@ setup(
     ],
     install_requires=['setuptools'], zip_safe=True,
     maintainer='a', maintainer_email='kweontj0701@naver.com',
-    description='Circle driving with front lidar stop and resume',
+    description='Circle and straight driving with front lidar stop and resume',
     license='Apache-2.0',
     entry_points={'console_scripts': ['circle_test = demo_test.node:main']},
 )

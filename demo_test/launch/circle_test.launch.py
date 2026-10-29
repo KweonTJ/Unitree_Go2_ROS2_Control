@@ -7,7 +7,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
-from demo_test.control import DEFAULTS
+from demo_test.control import DEFAULTS, MAX_VX
 
 
 def generate_launch_description():
@@ -16,7 +16,8 @@ def generate_launch_description():
                    output_topic='/cmd_vel')
     args += [DeclareLaunchArgument(k, default_value=v) for k, v in strings.items()]
     args += [DeclareLaunchArgument('start_bridge', default_value='true'),
-             DeclareLaunchArgument('dry_run', default_value='false')]
+             DeclareLaunchArgument('dry_run', default_value='false'),
+             DeclareLaunchArgument('node_name', default_value='circle_test')]
     parameters = {k: ParameterValue(LaunchConfiguration(k), value_type=float)
                   for k in DEFAULTS}
     parameters.update({k: ParameterValue(LaunchConfiguration(k), value_type=str)
@@ -26,9 +27,11 @@ def generate_launch_description():
              condition=IfCondition(LaunchConfiguration('start_bridge')),
              output='screen', parameters=[{
                  'input_topic': LaunchConfiguration('output_topic'),
+                 'max_linear': MAX_VX,
                  'command_timeout': 0.5,
                  'dry_run': ParameterValue(LaunchConfiguration('dry_run'), value_type=bool),
              }]),
         Node(package='demo_test', executable='circle_test',
+             name=LaunchConfiguration('node_name'),
              output='screen', parameters=[parameters]),
     ])

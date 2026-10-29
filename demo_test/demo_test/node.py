@@ -1,18 +1,19 @@
-"""Publish circle commands, stopping for front lidar returns."""
+"""Publish driving commands, stopping for front lidar returns."""
 
 import signal
 import time
 
 import rclpy
 from geometry_msgs.msg import Twist
-from rcl_interfaces.msg import ParameterDescriptor
+from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult
 from rclpy.clock import Clock, ClockType
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs_py import point_cloud2
 
-from .control import CircleControl, DEFAULTS
+from .control import CircleControl, DEFAULTS, validate_velocity
 
 
 class CircleNode(Node):
@@ -21,7 +22,8 @@ class CircleNode(Node):
         params = dict(DEFAULTS, lidar_topic='/utlidar/cloud',
                       lidar_frame='utlidar_lidar', output_topic='/cmd_vel')
         for name, value in params.items():
-            self.declare_parameter(name, value, ParameterDescriptor(read_only=True))
+            self.declare_parameter(
+                name, value, ParameterDescriptor(read_only=name not in ('vx', 'yaw')))
             params[name] = self.get_parameter(name).value
         self.control = CircleControl(**{k: params[k] for k in DEFAULTS})
         self.frame = params['lidar_frame']
@@ -34,8 +36,25 @@ class CircleNode(Node):
         self.timer = self.create_timer(
             1.0 / params['publish_rate'], self.tick, clock=self.clock)
         self.last_command = None
+        self.add_on_set_parameters_callback(self.on_parameters)
         self.get_logger().info(
-            'Starting circle driving; monitoring lidar in frame ' + self.frame)
+            'Starting driving; monitoring lidar in frame ' + self.frame)
+
+    def on_parameters(self, parameters):
+        # This callback runs before ROS commits values. Only validate here so a
+        # rejected request cannot alter motion or clear an obstacle stop.
+        velocity = {name: self.get_parameter(name).value for name in ('vx', 'yaw')}
+        for parameter in parameters:
+            if parameter.name in velocity:
+                if parameter.type_ != Parameter.Type.DOUBLE:
+                    return SetParametersResult(
+                        successful=False, reason=parameter.name + ' must be a float')
+                velocity[parameter.name] = parameter.value
+        try:
+            validate_velocity(**velocity)
+        except ValueError as exc:
+            return SetParametersResult(successful=False, reason=str(exc))
+        return SetParametersResult(successful=True)
 
     def on_cloud(self, msg):
         try:
@@ -50,10 +69,16 @@ class CircleNode(Node):
         self.tick()
 
     def tick(self):
+        # Use committed parameters on the next timer/cloud callback (20 Hz by
+        # default), preserving obstacle and sensor-fault stop state.
+        self.control.set_velocity(
+            self.get_parameter('vx').value, self.get_parameter('yaw').value)
         command = self.control.command(time.monotonic())
         self.publish(command)
         if command != self.last_command:
-            self.get_logger().info('CIRCLE' if command != (0.0, 0.0) else 'STOP')
+            self.get_logger().info(
+                f'DRIVE vx={command[0]:.3f} m/s yaw={command[1]:.3f} rad/s'
+                if command != (0.0, 0.0) else 'STOP')
             self.last_command = command
 
     def publish(self, command):

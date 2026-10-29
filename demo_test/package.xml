@@ -2,7 +2,7 @@
 <package format="3">
   <name>demo_test</name>
   <version>0.1.0</version>
-  <description>Open-loop circle driving with front lidar stop and resume.</description>
+  <description>Open-loop circle and straight driving with front lidar stop and resume.</description>
   <maintainer email="kweontj0701@naver.com">a</maintainer>
   <license>Apache-2.0</license>
   <exec_depend>rclpy</exec_depend>
